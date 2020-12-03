@@ -11,7 +11,7 @@
   https://developers.arcgis.com/javascript/latest/sample-code/featurefilter-attributes/index.html
   -->
 <title>
-      Filter features by attribute | Sample | ArcGIS API for JavaScript 4.17
+      PinterUsaha
     </title>
 
     <link
@@ -36,13 +36,15 @@
         visibility: hidden;
       }
 
-      .season-item {
-        width: 100%;
-        padding: 12px;
-        text-align: center;
-        vertical-align: baseline;
-        cursor: pointer;
-        height: 40px;
+      #layerToggle {
+        top: 20px;
+        right: 20px;
+        position: absolute;
+        z-index: 99;
+        background-color: white;
+        border-radius: 8px;
+        padding: 10px;
+        opacity: 0.75;
       }
 
       .season-item:focus {
@@ -91,27 +93,32 @@
         "esri/layers/FeatureLayer",
         "esri/widgets/Expand",
         "esri/widgets/Legend",
-        "esri/layers/WMTSLayer"
+        "esri/layers/WMTSLayer",
+        "esri/widgets/BasemapGallery"
         // "esri/geometry/geometryEngine"
         // "dojo/on",
         // "dojo/dom",
         // "dojo/domReady!"
-      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer) {
+      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer, BasemapGallery) {
 
         let floodLayerView;
 
         const merchantPinterusaha = new FeatureLayer({
-          url: "https://services6.arcgis.com/I3ZZGoo9gHB2qj3u/arcgis/rest/services/merchantPinterusaha/FeatureServer/0",
-          // popupTemplate: popupMerchant
+          url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
+          popupTemplate: {
+            title: "{Nama}",
+            content: "{Location}",
+          },
+          outfields: ['*']
         });
 
         const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
         const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
 
-        const batasProvinsi = new FeatureLayer({
+        const batasKecamatan = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", //https://portal.ina-sdi.or.id/gis/rest/services/PPBW/BATASWILAYAH_10K_ADMINISTRASI_AR_KELDESA/MapServer
           popupTemplate: {
-            title: "count jumlah merchant function",
+            title: " PinterUsaha pada {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kec_s}, {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kab_s} ",
             content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
             expressionInfos: [
               {
@@ -126,11 +133,16 @@
               },
             ]
           },
+          visible: false,
         });
       
-        const map = new WMTSLayer({
-          url: "https://api.mapbox.com/styles/v1/wellcode/cki7hxuj32jaq19pkxg9q0tof.html?fresh=true&title=copy&access_token=pk.eyJ1Ijoid2VsbGNvZGUiLCJhIjoiY2tpN2hpbm1rMHc3YjJwcW90Y2RhZHBibCJ9.nBvpKvr9Ad8kJFMhgeUo7Q",
-          layers: [merchantPinterusaha, batasProvinsi]
+        // const petaDasar = new WMTSLayer({
+        //   url: "https://api.mapbox.com/styles/v1/wellcode/cki7hxuj32jaq19pkxg9q0tof.html?fresh=true&title=copy&access_token=pk.eyJ1Ijoid2VsbGNvZGUiLCJhIjoiY2tpN2hpbm1rMHc3YjJwcW90Y2RhZHBibCJ9.nBvpKvr9Ad8kJFMhgeUo7Q",
+        // });
+
+        const map = new Map({
+          basemap: "streets-night-vector",
+          layers: [merchantPinterusaha, batasKecamatan]
         });
 
         const view = new MapView({
@@ -143,6 +155,25 @@
           }
         });
 
+        var streetsLayerToggle = document.getElementById("batasKecamatan");
+        streetsLayerToggle.addEventListener("change", function () {
+          batasKecamatan.visible = streetsLayerToggle.checked;
+        });
+
+        var basemapGallery = new BasemapGallery({
+          view: view
+        });
+        
+        view.ui.add(basemapGallery, {
+          position: "bottom-left"
+        });
+
+        view.ui.add(
+          new Legend({
+            view: view,
+          }),
+          "bottom-right"
+        );
       });
 
     </script>
@@ -151,8 +182,8 @@
   <body>
     <div id="viewDiv"></div>
     <div id="titleDiv" class="esri-widget">
-      <div id="titleText">Jumlah eWarung</div>
-      <div>tinggal listnya ditampilin disini deh</div>
+      <span id="layerToggle" class="esri-widget">
+        <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
     </div>
   </body>
 </html>
