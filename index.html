@@ -116,9 +116,51 @@
         const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
 
         const batasKecamatan = new FeatureLayer({
-          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", //https://portal.ina-sdi.or.id/gis/rest/services/PPBW/BATASWILAYAH_10K_ADMINISTRASI_AR_KELDESA/MapServer
+          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
           popupTemplate: {
             title: " PinterUsaha pada {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kec_s}, {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kab_s} ",
+            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+            expressionInfos: [
+              {
+                name: "count-subsribe",
+                title: "Jumlah Subsribe",
+                expression: arcadeCountSubscribe
+              },
+              {
+                name: "count-unsubscribe",
+                title: "Jumlah Unsubscribe",
+                expression: arcadeCountUnsubscribe
+              },
+            ]
+          },
+          visible: false,
+        });
+
+        const batasKota = new FeatureLayer({
+          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/1", 
+          popupTemplate: {
+            title: " PinterUsaha pada ",
+            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+            expressionInfos: [
+              {
+                name: "count-subsribe",
+                title: "Jumlah Subsribe",
+                expression: arcadeCountSubscribe
+              },
+              {
+                name: "count-unsubscribe",
+                title: "Jumlah Unsubscribe",
+                expression: arcadeCountUnsubscribe
+              },
+            ]
+          },
+          visible: false,
+        });
+
+        const batasProvinsi = new FeatureLayer({
+          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/0",
+          popupTemplate: {
+            title: " PinterUsaha pada ",
             content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
             expressionInfos: [
               {
@@ -142,7 +184,7 @@
 
         const map = new Map({
           basemap: "streets-night-vector",
-          layers: [merchantPinterusaha, batasKecamatan]
+          layers: [merchantPinterusaha, batasKecamatan, batasKota, batasProvinsi]
         });
 
         const view = new MapView({
@@ -155,10 +197,21 @@
           }
         });
 
-        var streetsLayerToggle = document.getElementById("batasKecamatan");
-        streetsLayerToggle.addEventListener("change", function () {
-          batasKecamatan.visible = streetsLayerToggle.checked;
+        var batasKotaToggle = document.getElementById("batasKota");
+        batasKotaToggle.addEventListener("change", function () {
+          batasKota.visible = batasKotaToggle.checked;
         });
+
+        var batasKecamatanToggle = document.getElementById("batasKecamatan");
+        batasKecamatanToggle.addEventListener("change", function () {
+          batasKecamatan.visible = batasKecamatanToggle.checked;
+        });
+
+        var batasProvinsiToggle = document.getElementById("batasProvinsi");
+        batasProvinsiToggle.addEventListener("change", function () {
+          batasProvinsi.visible = batasProvinsiToggle.checked;
+        });
+
 
         var basemapGallery = new BasemapGallery({
           view: view
@@ -184,6 +237,8 @@
     <div id="titleDiv" class="esri-widget">
       <span id="layerToggle" class="esri-widget">
         <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
+        <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten
+        <input type="checkbox" id="batasProvinsi" /> Batas Provinsi
     </div>
   </body>
 </html>
