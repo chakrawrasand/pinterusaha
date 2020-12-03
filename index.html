@@ -1,0 +1,158 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the featurefilter-attributes sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/featurefilter-attributes/index.html
+  -->
+<title>
+      Filter features by attribute | Sample | ArcGIS API for JavaScript 4.17
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.17/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.17/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #seasons-filter {
+        height: 160px;
+        width: 100%;
+        visibility: hidden;
+      }
+
+      .season-item {
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+        vertical-align: baseline;
+        cursor: pointer;
+        height: 40px;
+      }
+
+      .season-item:focus {
+        background-color: dimgrey;
+      }
+
+      .season-item:hover {
+        background-color: dimgrey;
+      }
+
+      #titleDiv {
+        padding: 10px;
+      }
+
+      #titleText {
+        font-size: 20pt;
+        font-weight: 60;
+        padding-bottom: 10px;
+      }
+    </style>
+
+    <script type="text/arcgis-arcade" id="countSubsribe">
+      var portal = Portal('https://wellcode.maps.arcgis.com/');
+      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keyword = 'yes'
+      var filterKeyword = Filter(merchant,'subscribe = @keyword')
+      var intersectArea = Intersects($feature, filterKeyword)
+      var jumlah = count(intersectArea)
+      return jumlah
+    </script>
+
+    <script type="text/arcgis-arcade" id="countUnsubscribe">
+      var portal = Portal('https://wellcode.maps.arcgis.com/');
+      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keyword = 'no'
+      var filterKeyword = Filter(merchant,'subscribe = @keyword')
+      var intersectArea = Intersects($feature, filterKeyword)
+      var jumlah = count(intersectArea)
+      return jumlah
+    </script>
+
+    <script>
+      require([
+        "esri/views/MapView",
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/layers/WMTSLayer"
+        // "esri/geometry/geometryEngine"
+        // "dojo/on",
+        // "dojo/dom",
+        // "dojo/domReady!"
+      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer) {
+
+        let floodLayerView;
+
+        const merchantPinterusaha = new FeatureLayer({
+          url: "https://services6.arcgis.com/I3ZZGoo9gHB2qj3u/arcgis/rest/services/merchantPinterusaha/FeatureServer/0",
+          // popupTemplate: popupMerchant
+        });
+
+        const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
+        const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
+
+        const batasProvinsi = new FeatureLayer({
+          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", //https://portal.ina-sdi.or.id/gis/rest/services/PPBW/BATASWILAYAH_10K_ADMINISTRASI_AR_KELDESA/MapServer
+          popupTemplate: {
+            title: "count jumlah merchant function",
+            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+            expressionInfos: [
+              {
+                name: "count-subsribe",
+                title: "Jumlah Subsribe",
+                expression: arcadeCountSubscribe
+              },
+              {
+                name: "count-unsubscribe",
+                title: "Jumlah Unsubscribe",
+                expression: arcadeCountUnsubscribe
+              },
+            ]
+          },
+        });
+      
+        const map = new WMTSLayer({
+          url: "https://api.mapbox.com/styles/v1/wellcode/cki7hxuj32jaq19pkxg9q0tof.html?fresh=true&title=copy&access_token=pk.eyJ1Ijoid2VsbGNvZGUiLCJhIjoiY2tpN2hpbm1rMHc3YjJwcW90Y2RhZHBibCJ9.nBvpKvr9Ad8kJFMhgeUo7Q",
+          layers: [merchantPinterusaha, batasProvinsi]
+        });
+
+        const view = new MapView({
+          map: map,
+          container: "viewDiv",
+          center: [107.6191, -6.9175],
+          zoom: 13,
+          ui: {
+            components: ["attribution"]
+          }
+        });
+
+      });
+
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="titleDiv" class="esri-widget">
+      <div id="titleText">Jumlah eWarung</div>
+      <div>tinggal listnya ditampilin disini deh</div>
+    </div>
+  </body>
+</html>
