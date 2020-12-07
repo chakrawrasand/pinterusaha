@@ -30,10 +30,12 @@
         width: 100%;
       }
 
-      #seasons-filter {
-        height: 160px;
-        width: 100%;
-        visibility: hidden;
+      #subs-filter {
+        height: 80px;
+        width: 120px;
+        font-size: 13pt;
+        opacity: 0.75;
+        visibility: hidden; 
       }
 
       #layerToggle {
@@ -47,11 +49,11 @@
         opacity: 0.75;
       }
 
-      .season-item:focus {
+      .subs-status:focus {
         background-color: dimgrey;
       }
 
-      .season-item:hover {
+      .subs-status:hover {
         background-color: dimgrey;
       }
 
@@ -115,6 +117,7 @@
         const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
         const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
 
+        //------------- call mapservice layer & arcade count -------------------
         const batasKecamatan = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
           popupTemplate: {
@@ -177,26 +180,24 @@
           },
           visible: false,
         });
-      
-        // const petaDasar = new WMTSLayer({
-        //   url: "https://api.mapbox.com/styles/v1/wellcode/cki7hxuj32jaq19pkxg9q0tof.html?fresh=true&title=copy&access_token=pk.eyJ1Ijoid2VsbGNvZGUiLCJhIjoiY2tpN2hpbm1rMHc3YjJwcW90Y2RhZHBibCJ9.nBvpKvr9Ad8kJFMhgeUo7Q",
-        // });
-
+    
         const map = new Map({
           basemap: "streets-night-vector",
           layers: [merchantPinterusaha, batasKecamatan, batasKota, batasProvinsi]
         });
+        //------------- /call mapservice layer & arcade count -------------------
 
         const view = new MapView({
           map: map,
           container: "viewDiv",
           center: [107.6191, -6.9175],
-          zoom: 13,
+          zoom: 6,
           ui: {
             components: ["attribution"]
           }
         });
 
+        //------------- toggle by area -------------------
         var batasKotaToggle = document.getElementById("batasKota");
         batasKotaToggle.addEventListener("change", function () {
           batasKota.visible = batasKotaToggle.checked;
@@ -211,14 +212,52 @@
         batasProvinsiToggle.addEventListener("change", function () {
           batasProvinsi.visible = batasProvinsiToggle.checked;
         });
+        //------------- /toggle by area -------------------
 
+        //------------- filter by subsriber -------------------
+        const subsNodes = document.querySelectorAll(`.subs-status`)
+        const subsElement = document.getElementById("subs-filter")
+
+        subsElement.addEventListener("click",filterBySubsStatus)
+        function filterBySubsStatus(event){
+          const selectedStatus = event.target.getAttribute("subs-status")
+          floodLayerView.filter = {
+            where: "subscribe = '" + selectedStatus + "'"
+          };
+        }
+
+        view.whenLayerView(merchantPinterusaha).then(function(layerView){
+            floodLayerView = layerView;
+
+            subsElement.style.visibility = "visible";
+            const subsExpand = new Expand({
+              view: view,
+              content: subsElement,
+              expandIconClass: "esri-icon-filter",
+              group: "top-left"
+            });
+
+            subsExpand.watch("expanded", function(){
+              if(!subsExpand.expanded){
+                floodLayerView.filter = null;
+              }
+            });
+            view.ui.add(subsExpand, "top-right");
+        });
+        //------------- /filter by subsriber -------------------
 
         var basemapGallery = new BasemapGallery({
-          view: view
+          view: view,
+          source: {
+            portal: {
+              url: "https://www.arcgis.com",
+              useVectorBasemaps: true
+              }
+          }    
         });
         
         view.ui.add(basemapGallery, {
-          position: "bottom-left"
+          position: "bottom-left",
         });
 
         view.ui.add(
@@ -233,6 +272,10 @@
   </head>
 
   <body>
+    <div id="subs-filter" class="esri-widget">
+      <div class="subs-status visible-status" subs-status="yes">Subsribe</div>
+      <div class="subs-status visible-status" subs-status="no">Not Subsribe</div>
+    </div>
     <div id="viewDiv"></div>
     <div id="titleDiv" class="esri-widget">
       <span id="layerToggle" class="esri-widget">
