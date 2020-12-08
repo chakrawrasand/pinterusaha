@@ -88,6 +88,42 @@
       return jumlah
     </script>
 
+    <script type="text/arcgis-arcade" id="maxUserStatus">
+      var portal = Portal('https://wellcode.maps.arcgis.com/');
+      var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keywordUnsub = 'no'
+      var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
+      var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
+      var jumlahUnsub = count(intersectAreaUnsub)
+      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keyword = 'yes'
+      var filterKeyword = Filter(merchant,'subscribe = @keyword')
+      var intersectArea = Intersects($feature, filterKeyword)
+      var jumlah = count(intersectArea)
+      var preDecode = [jumlah, jumlahUnsub]
+      return Decode( Max(parties),
+      jumlah, 'subs',
+      jumlahUnsub, 'unsubs',
+      'n/a' )
+    </script>
+
+    <script type="text/arcgis-arcade" id="persenSub">
+      var portal = Portal('https://wellcode.maps.arcgis.com/');
+      var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keywordUnsub = 'no'
+      var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
+      var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
+      var jumlahUnsub = count(intersectAreaUnsub)
+      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+      var keyword = 'yes'
+      var filterKeyword = Filter(merchant,'subscribe = @keyword')
+      var intersectArea = Intersects($feature, filterKeyword)
+      var jumlah = count(intersectArea)
+      var max = jumlah + jumlahUnsub
+      var persen = jumlah/max*100
+      return round(persen, 2)
+    </script>
+
     <script>
       require([
         "esri/views/MapView",
@@ -96,12 +132,17 @@
         "esri/widgets/Expand",
         "esri/widgets/Legend",
         "esri/layers/WMTSLayer",
-        "esri/widgets/BasemapGallery"
+        "esri/widgets/BasemapGallery",
+        "esri/renderers/UniqueValueRenderer",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/Color",
         // "esri/geometry/geometryEngine"
         // "dojo/on",
         // "dojo/dom",
         // "dojo/domReady!"
-      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer, BasemapGallery) {
+      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer, BasemapGallery,
+      UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, Color) {
 
         let floodLayerView;
 
@@ -114,15 +155,46 @@
           outfields: ['*']
         });
 
+        //-------------call arcade function-------------------------------------
         const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
         const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
+        const arcadeCountPercentageSubs = document.getElementById("persenSub").text;
+        //-------------/call arcade function-------------------------------------
+        
+        // var fill = {
+        //   type: "simple-fill",
+        //   outline: { cap: "round" },
+        //   color: [124, 26, 26, 0.4]
+        // };
+
+        // var fill2 = {
+        //   type: "simple-fill",
+        //   outline: { cap: "round" },
+        //   color: [26, 41, 124, 0.4]
+        // };
+
+        // var renderBatas = new UniqueValueRenderer({
+        //   ValueExpression: arcadeCountPercentageSubs,
+        //   ValueExpressionTitle: "Percentage Subscriber",
+        //   uniqueValueInfos: [{
+        //     value: "subs",
+        //     symbol: fill,
+        //     label: ">50% subsriber"
+        //   },
+        //   {
+        //     value: "unsubs",
+        //     symbol: fill2,
+        //     label: "<50% subsriber"
+        //   }] 
+        // });
 
         //------------- call mapservice layer & arcade count -------------------
         const batasKecamatan = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
           popupTemplate: {
             title: " PinterUsaha pada {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kec_s}, {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kab_s} ",
-            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}"
+            + ", Percentage Subsriber = " + "{expression/percent-subs}%",
             expressionInfos: [
               {
                 name: "count-subsribe",
@@ -134,15 +206,21 @@
                 title: "Jumlah Unsubscribe",
                 expression: arcadeCountUnsubscribe
               },
+              {
+                name: "percent-subs",
+                title: "percentage subsriber",
+                expression: arcadeCountPercentageSubs
+              }
             ]
           },
+          // renderer: renderBatas,
           visible: false,
         });
 
         const batasKota = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/1", 
           popupTemplate: {
-            title: " PinterUsaha pada ",
+            title: " PinterUsaha pada {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_kab_s}, {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_prop_}",
             content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
             expressionInfos: [
               {
@@ -163,7 +241,7 @@
         const batasProvinsi = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/0",
           popupTemplate: {
-            title: " PinterUsaha pada ",
+            title: " PinterUsaha pada Provinsi {giskemendagri.gisadmin.Provinsi_baru.provinsi}",
             content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
             expressionInfos: [
               {
@@ -244,21 +322,22 @@
             });
             view.ui.add(subsExpand, "top-right");
         });
+        
         //------------- /filter by subsriber -------------------
 
-        var basemapGallery = new BasemapGallery({
-          view: view,
-          source: {
-            portal: {
-              url: "https://www.arcgis.com",
-              useVectorBasemaps: true
-              }
-          }    
-        });
+        // var basemapGallery = new BasemapGallery({
+        //   view: view,
+        //   source: {
+        //     portal: {
+        //       url: "https://www.arcgis.com",
+        //       useVectorBasemaps: true
+        //       }
+        //   }    
+        // });
         
-        view.ui.add(basemapGallery, {
-          position: "bottom-left",
-        });
+        // view.ui.add(basemapGallery, {
+        //   position: "bottom-left",
+        // });
 
         view.ui.add(
           new Legend({
@@ -266,6 +345,7 @@
           }),
           "bottom-right"
         );
+        
       });
 
     </script>
