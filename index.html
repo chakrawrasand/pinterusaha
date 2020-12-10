@@ -38,6 +38,14 @@
         visibility: hidden; 
       }
 
+      #class-filter {
+        height: 160px;
+        width: 150px;
+        font-size: 13pt;
+        opacity: 0.75;
+        visibility: hidden; 
+      }
+
       #layerToggle {
         top: 20px;
         right: 20px;
@@ -334,11 +342,24 @@
         const subsNodes = document.querySelectorAll(`.subs-status`)
         const subsElement = document.getElementById("subs-filter")
 
-        subsElement.addEventListener("click",filterBySubsStatus)
+        const subStatuses = document.querySelectorAll('.subs-status');
+        for(let i=0; i<subStatuses.length; i++){
+          subStatuses[i].addEventListener('change', filterBySubsStatus)        
+        }
+
         function filterBySubsStatus(event){
-          const selectedStatus = event.target.getAttribute("subs-status")
+          let params = [];
+          for(let i=0; i<subStatuses.length; i++){
+            const value = subStatuses[i].dataset.subsStatus;
+            const actived = subStatuses[i].checked;
+            if(actived){
+              params.push("subscribe = '" + value + "'");
+            }
+          }
+
+          let query = params.join(' OR ');
           floodLayerView.filter = {
-            where: "subscribe = '" + selectedStatus + "'"
+            where: query
           };
         }
 
@@ -353,14 +374,55 @@
             group: "top-left"
           });
 
-          subsExpand.watch("expanded", function(){
-            if(!subsExpand.expanded){
-              floodLayerView.filter = null;
-            }
-          });
+          // // subsExpand.watch("expanded", function(){
+          // //   if(!subsExpand.expanded){
+          // //     floodLayerView.filter = null;
+          // //   }
+          // });
           view.ui.add(subsExpand, "top-left");
         });
         //--------------/filter by subsriber -------------------
+
+        //------------- filter by klasifikasi usaha -------------------
+        const classNodes = document.querySelectorAll(`.class-merchant`)
+        const classElement = document.getElementById("class-filter")
+
+        const classifyData = document.querySelectorAll('.class-merchant');
+        for(let i=0; i<classifyData.length; i++){
+          classifyData[i].addEventListener('change', filterByClassification)        
+        }
+
+        function filterByClassification(event){
+          let params = [];
+          for(let i=0; i<classifyData.length; i++){
+            const value = classifyData[i].dataset.classMerchant;
+            const actived = classifyData[i].checked;
+            if(actived){
+              params.push("klasifikasi  = '" + value + "'");
+            }
+            
+          }
+          
+          let queryClass = params.join(' OR ');
+          // debugger;
+          floodLayerView.filter = {
+            where: queryClass
+          };
+        }
+      
+        view.whenLayerView(merchantPinterusaha).then(function(layerView){
+          floodLayerView = layerView;
+     
+          classElement.style.visibility = "visible";
+          const classExpand = new Expand({
+            view: view,
+            content: classElement,
+            expandIconClass: "esri-icon-filter",
+            group: "top-left"
+          });
+          view.ui.add(classExpand, "top-left");
+        });
+        //--------------/filter by klasifikasi usaha -------------------
 
         //---------------------change basemap--------------------------------
         var basemapGallery = new BasemapGallery({
@@ -421,8 +483,16 @@
 
   <body>
     <div id="subs-filter" class="esri-widget">
-      <div class="subs-status visible-status" subs-status="yes">Subsribe</div>
-      <div class="subs-status visible-status" subs-status="no">Not Subsribe</div>
+      <input type="checkbox" class="subs-status visible-status" data-subs-status="yes">Subscribed<br>
+      <input type="checkbox" class="subs-status visible-status" data-subs-status="no">Not Subscribed
+    </div>
+    <div id="class-filter" class="esri-widget">
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa">Services<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kesehatan">Healthcare<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Coffee Shop">Coffee Shop<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB">Food & Beverages<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk">Product<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian">Ministry
     </div>
     <div id="viewDiv"></div>
     <div id="titleDiv" class="esri-widget">
