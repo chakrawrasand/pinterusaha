@@ -40,7 +40,7 @@
 
       #layerToggle {
         top: 20px;
-        left: 20px;
+        right: 20px;
         position: absolute;
         z-index: 99;
         background-color: white;
@@ -65,6 +65,14 @@
         font-size: 20pt;
         font-weight: 60;
         padding-bottom: 10px;
+      }
+
+      #infoDiv {
+        padding: 10px;
+      }
+
+      #basemapDiv {
+        padding: 10px;
       }
     </style>
 
@@ -146,21 +154,13 @@
 
         let floodLayerView;
 
-        const merchantPinterusaha = new FeatureLayer({
-          url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
-          popupTemplate: {
-            title: "{Nama}",
-            content: "{Location}",
-          },
-          outfields: ['*']
-        });
-
         //-------------call arcade function-------------------------------------
         const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
         const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
         const arcadeCountPercentageSubs = document.getElementById("persenSub").text;
         //-------------/call arcade function-------------------------------------
-        
+
+        //--------------------color selection batas wilayah------------------------
         // var fill = {
         //   type: "simple-fill",
         //   outline: { cap: "round" },
@@ -173,7 +173,7 @@
         //   color: [26, 41, 124, 0.4]
         // };
 
-        // var renderBatas = new UniqueValueRenderer({
+        // const renderBatas = new UniqueValueRenderer({
         //   ValueExpression: arcadeCountPercentageSubs,
         //   ValueExpressionTitle: "Percentage Subscriber",
         //   uniqueValueInfos: [{
@@ -187,8 +187,46 @@
         //     label: "<50% subsriber"
         //   }] 
         // });
+        //--------------------/color selection batas wilayah------------------------
+        
+        //--------------cluster----------------------------
+        const clusterMerchant = {
+          type: "cluster",
+          clusterRadius: "100px",
+          clusterMinSize: "24px",
+          clusterMaxSize: "50px",
+          labelingInfo: [
+            {
+              deconflictionStrategy: "none",
+              labelExpressionInfo: {
+                expression: "Text($feature.cluster_count, '#,###')"
+              },
+              symbol: {
+                type: "text",
+                color: "#004a5d",
+                font: {
+                  weight: "bold",
+                  family: "Noto Sans",
+                  size: "12px"
+                }
+              },
+              labelPlacement: "center-center"
+            }
+          ]
+        };
+        //--------------/cluster----------------------------
 
         //------------- call mapservice layer & arcade count -------------------
+        const merchantPinterusaha = new FeatureLayer({
+          url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
+          popupTemplate: {
+            title: "{Nama}",
+            content: "{Location}",
+          },
+          outfields: ['*'],
+          featureReduction: clusterMerchant,
+        });
+        
         const batasKecamatan = new FeatureLayer({
           url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
           popupTemplate: {
@@ -305,47 +343,77 @@
         }
 
         view.whenLayerView(merchantPinterusaha).then(function(layerView){
-            floodLayerView = layerView;
+          floodLayerView = layerView;
 
-            subsElement.style.visibility = "visible";
-            const subsExpand = new Expand({
-              view: view,
-              content: subsElement,
-              expandIconClass: "esri-icon-filter",
-              group: "top-left"
-            });
+          subsElement.style.visibility = "visible";
+          const subsExpand = new Expand({
+            view: view,
+            content: subsElement,
+            expandIconClass: "esri-icon-filter",
+            group: "top-left"
+          });
 
-            subsExpand.watch("expanded", function(){
-              if(!subsExpand.expanded){
-                floodLayerView.filter = null;
+          subsExpand.watch("expanded", function(){
+            if(!subsExpand.expanded){
+              floodLayerView.filter = null;
+            }
+          });
+          view.ui.add(subsExpand, "top-left");
+        });
+        //--------------/filter by subsriber -------------------
+
+        //---------------------change basemap--------------------------------
+        var basemapGallery = new BasemapGallery({
+          view: view,
+          container: "basemapDiv",
+          source: {
+            portal: {
+              url: "https://www.arcgis.com",
+              useVectorBasemaps: true
               }
-            });
-            view.ui.add(subsExpand, "top-right");
+          }    
         });
         
-        //------------- /filter by subsriber -------------------
-
-        // var basemapGallery = new BasemapGallery({
-        //   view: view,
-        //   source: {
-        //     portal: {
-        //       url: "https://www.arcgis.com",
-        //       useVectorBasemaps: true
-        //       }
-        //   }    
-        // });
-        
-        // view.ui.add(basemapGallery, {
-        //   position: "bottom-left",
-        // });
-
+        const basemapDiv = document.getElementById("basemapDiv");
         view.ui.add(
-          new Legend({
+          new Expand({
             view: view,
+            content: basemapDiv,
+            expandIconClass: "esri-icon-basemap",
+            expanded: false
           }),
-          "bottom-right"
+          "top-left"
         );
+        //--------------/change basemap--------------------------------
+
+        //-------------------Map Legend & Disable/Enable Clustering---------------------
+        const legend = new Legend({
+          view: view,
+          container: "legendDiv"
+        });
         
+        const infoDiv = document.getElementById("infoDiv");
+        view.ui.add(
+          new Expand({
+            view: view,
+            content: infoDiv,
+            expandIconClass: "esri-icon-layer-list",
+            expanded: false
+          }),
+          "top-left"
+        );
+
+        const toggleButton = document.getElementById("cluster");
+        toggleButton.addEventListener("click", function () {
+          let fr = merchantPinterusaha.featureReduction;
+          merchantPinterusaha.featureReduction =
+            fr && fr.type === "cluster" ? null : clusterMerchant;
+          toggleButton.innerText =
+            toggleButton.innerText === "Enable Clustering"
+              ? "Disable Clustering"
+              : "Enable Clustering";
+        });
+        //-------------------/Map Legend & Disable/Enable Clustering---------------------
       });
 
     </script>
@@ -362,6 +430,13 @@
         <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
         <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten
         <input type="checkbox" id="batasProvinsi" /> Batas Provinsi
+    </div>
+    <div id="infoDiv" class="esri-widget">
+      <button id="cluster" class="esri-button">Disable Clustering</button>
+      <div id="legendDiv"></div>
+    </div>
+    <div id="basemapDiv" class="esri-widget">
+      <div id="basemapDiv"></div>
     </div>
   </body>
 </html>
