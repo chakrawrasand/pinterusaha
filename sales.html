@@ -1,0 +1,309 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the featurefilter-attributes sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/featurefilter-attributes/index.html
+  -->
+<title>
+      PinterUsaha
+    </title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.17/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.17/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #subs-filter {
+        height: 80px;
+        width: 120px;
+        font-size: 13pt;
+        opacity: 0.75;
+        visibility: hidden; 
+      }
+
+      #class-filter {
+        height: 160px;
+        width: 150px;
+        font-size: 13pt;
+        opacity: 0.75;
+        visibility: hidden; 
+      }
+      
+      #layerToggle {
+        top: 15px;
+        left: 60px;
+        position: absolute;
+        z-index: 99;
+        background-color: white;
+        border-radius: 8px;
+        padding: 10px;
+        opacity: 0.75;
+      }
+
+      #basemapDiv {
+        padding: 10px;
+      }
+
+      #timeSliderDiv {
+        position: absolute;
+        left: 100px;
+        right: 100px;
+        bottom: 30px;
+      }
+    </style>
+
+    <script>
+      require([
+        "esri/views/MapView",
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/widgets/BasemapGallery",
+        "esri/widgets/TimeSlider",
+        "esri/layers/support/TimeInfo"
+      ], function (MapView, Map, FeatureLayer, Expand, Legend, BasemapGallery, TimeSlider, TimeInfo) {
+
+        let salesLayerView;
+
+        //------------- call mapservice layer & arcade count -------------------
+        const popupSalesPinterusaha = {
+          title: "{merchantName}",
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "salesName",
+                  label: "Sales",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "userName",
+                  label: "Pemilik Toko",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "telpNo",
+                  label: "No. Telepon Pemilik",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "email",
+                  label: "E-mail",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "bisnisClass",
+                  label: "Klasifikasi Bisnis",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "salesClass",
+                  label: "Klasifikasi Sales",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "systemClass",
+                  label: "Sistem yang sudah digunakan",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "textDesc",
+                  label: "Keterangan",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+                {
+                  fieldName: "timestamp",
+                  label: "Tanggal Survey",
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box",
+                },
+              ],
+            },
+          ],
+        }
+        const salesPinterusaha = new FeatureLayer({
+          url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/salesMerchantTime/FeatureServer/0",
+          timeInfo: {
+            startField: "tanggal",
+          },
+          popupTemplate: popupSalesPinterusaha,
+          outfields: ['*'],
+        });
+       
+        const map = new Map({
+          basemap: "streets-night-vector",
+          layers: [salesPinterusaha]
+        });
+        //------------- /call mapservice layer & arcade count -------------------
+
+        //-------------- add layer map --------------------------
+        const view = new MapView({
+          map: map,
+          container: "viewDiv",
+          center: [107.6191, -6.9175],
+          zoom: 11,
+          ui: {
+            components: ["attribution"]
+          }
+        });
+        //-------------- /add layer map --------------------------
+
+        //-------------------------- time slider ---------------------------
+        const timeSlider = new TimeSlider({
+          container: "timeSliderDiv",
+          view: view,
+          timeVisible: false,
+        });
+        view.ui.add(timeSlider, "manual");
+        view.ui.add("timeSliderDiv");
+        
+        view.whenLayerView(salesPinterusaha).then(function (lv) { 
+          salesLayerview=lv    
+          timeSlider.fullTimeExtent = {
+            start: new Date(2020,10,1),
+            end: salesPinterusaha.timeInfo.fullTimeExtent.end
+          };
+          timeSlider.stops = {
+            interval: {
+              value: 1,
+              unit: "days"
+            }
+          };
+        });
+
+        // timeSlider.watch("timeExtent",function(){
+        //   salesPinterusaha.definitionExpression =
+        //     "time <=" + timeSlider.timeExtent.end.getTime();
+        //   layerView.effect = {
+        //     filter:{
+        //       timeExtent: timeSlider.timeExtent,
+        //       geometry: view.extent
+        //     },
+        //     excludedEffect: "grayscale(20%) opacity(12%)"
+        //   };
+
+        //   const statQuery = layerView.effect.filter.createQuery();
+        //   statQuery.outStatistics = [
+        //     merchantCount
+        //   ];
+        // })
+        //-------------------------- time slider ---------------------------
+
+        //---------------------change basemap--------------------------------
+        var basemapGallery = new BasemapGallery({
+          view: view,
+          container: "basemapDiv",
+          source: {
+            portal: {
+              url: "https://www.arcgis.com",
+              useVectorBasemaps: true
+              }
+          }    
+        });
+        
+        const basemapDiv = document.getElementById("basemapDiv");
+        view.ui.add(
+          new Expand({
+            view: view,
+            content: basemapDiv,
+            expandIconClass: "esri-icon-basemap",
+            expanded: false
+          }),
+          "top-left"
+        );
+        //--------------/change basemap--------------------------------
+        
+        //------------- filter by klasifikasi usaha -------------------
+        
+        //--------------/filter by klasifikasi usaha -------------------
+
+        //-------------------Map Legend & Disable/Enable Clustering---------------------
+        const legend = new Legend({
+          view: view,
+          container: "legendDiv",
+          layerInfos:[
+              {
+                layer: salesPinterusaha,
+                title: "Sales door-to-door Pinterusaha"
+              },
+            ]
+        });
+        
+        const legendDiv = document.getElementById("legendDiv");
+        view.ui.add(
+          new Expand({
+            view: view,
+            content: legendDiv,
+            expandIconClass: "esri-icon-layer-list",
+            expanded: false,
+          }),
+          "top-left"
+        );
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="class-filter" class="esri-widget">
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa">Services<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kesehatan">Healthcare<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Coffee Shop">Coffee Shop<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB">Food & Beverages<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk">Product<br>
+      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian">Ministry
+    </div>
+    <div id="viewDiv"></div>
+    <div id="timeSliderDiv"></div>
+    <div id="basemapDiv" class="esri-widget">
+      <div id="basemapDiv"></div>
+    </div>
+    <div id="legendDiv" class="esri-widget">
+      <div id="legendDiv"></div>
+    </div>
+  </body>
+</html>
