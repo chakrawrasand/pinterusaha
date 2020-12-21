@@ -30,7 +30,7 @@
         width: 100%;
       }
 
-      #subs-filter {
+      #bisnis-filter {
         height: 80px;
         width: 120px;
         font-size: 13pt;
@@ -38,7 +38,7 @@
         visibility: hidden; 
       }
 
-      #class-filter {
+      #bisnis-filter {
         height: 160px;
         width: 150px;
         font-size: 13pt;
@@ -66,7 +66,9 @@
         left: 100px;
         right: 100px;
         bottom: 30px;
+        /* width: 400px; */
       }
+
     </style>
 
     <script>
@@ -79,9 +81,10 @@
         "esri/widgets/BasemapGallery",
         "esri/widgets/TimeSlider",
         "esri/layers/support/TimeInfo"
-      ], function (MapView, Map, FeatureLayer, Expand, Legend, BasemapGallery, TimeSlider, TimeInfo) {
+      ], function (MapView, Map, FeatureLayer, Expand, Legend, BasemapGallery, TimeSlider,
+      TimeInfo) {
 
-        let salesLayerView;
+        let salesLayerview;
 
         //------------- call mapservice layer & arcade count -------------------
         const popupSalesPinterusaha = {
@@ -165,7 +168,8 @@
               ],
             },
           ],
-        }
+        };
+
         const salesPinterusaha = new FeatureLayer({
           url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/salesMerchantTime/FeatureServer/0",
           timeInfo: {
@@ -203,11 +207,15 @@
         view.ui.add("timeSliderDiv");
         
         view.whenLayerView(salesPinterusaha).then(function (lv) { 
-          salesLayerview=lv    
+          salesLayerview=lv
+          const start = new Date(2020,0,1);
           timeSlider.fullTimeExtent = {
-            start: new Date(2020,10,1),
+            start: start,
             end: salesPinterusaha.timeInfo.fullTimeExtent.end
           };
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+          timeSlider.values = [start, end];
           timeSlider.stops = {
             interval: {
               value: 1,
@@ -259,7 +267,39 @@
         //--------------/change basemap--------------------------------
         
         //------------- filter by klasifikasi usaha -------------------
-        
+        const bisnisNodes = document.querySelectorAll(`.bisnis-class`)
+        const bisnisElement = document.getElementById("bisnis-filter")
+        const classifyBisnis = document.querySelectorAll('.bisnis-class');
+        for(let i=0; i<classifyBisnis.length; i++){
+          classifyBisnis[i].addEventListener('change', filterByBisnis)
+        }
+
+        function filterByBisnis(event){
+          let params = [];
+          for(let i=0; i<classifyBisnis.length; i++){
+            const value = classifyBisnis[i].dataset.bisnisClass;
+            const actived = classifyBisnis[i].checked;
+            if(actived){
+              params.push("bisnisClass = '" + value + "'")
+            }
+          }
+          let queryClass = params.join(' OR ');
+          salesLayerview.filter = {
+            where: queryClass
+          };
+        }
+
+        view.whenLayerView(salesPinterusaha).then(function(layerView){
+          salesLayerview = layerView;
+          bisnisElement.style.visibility = "visible";
+          const bisnisExpand = new Expand({
+            view: view,
+            content: bisnisElement,
+            expandIconClass: "esri-icon-filter",
+            group: "top-left"
+          });
+          view.ui.add(bisnisExpand,"top-left")        
+        });
         //--------------/filter by klasifikasi usaha -------------------
 
         //-------------------Map Legend & Disable/Enable Clustering---------------------
@@ -289,16 +329,18 @@
   </head>
 
   <body>
-    <div id="class-filter" class="esri-widget">
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa">Services<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kesehatan">Healthcare<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Coffee Shop">Coffee Shop<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB">Food & Beverages<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk">Product<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian">Ministry
+    <div id="bisnis-filter" class="esri-widget">
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="Jasa">Services<br>
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="Kesehatan">Healthcare<br>
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="Coffee Shop">Coffee Shop<br>
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="FnB">Food & Beverages<br>
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="Produk">Product<br>
+      <input type="checkbox" class="bisnis-class visible-status" data-bisnis-class="Kementerian">Ministry
     </div>
     <div id="viewDiv"></div>
-    <div id="timeSliderDiv"></div>
+    <!-- <div id="timeSliderDiv" class="esri-widget"> -->
+      <div id="timeSliderDiv"></div>
+    <!-- </div> -->
     <div id="basemapDiv" class="esri-widget">
       <div id="basemapDiv"></div>
     </div>
