@@ -11,502 +11,507 @@
   https://developers.arcgis.com/javascript/latest/sample-code/featurefilter-attributes/index.html
   -->
 <title>
-      PinterUsaha
-    </title>
+  PinterUsaha
+</title>
 
-    <link
-      rel="stylesheet"
-      href="https://js.arcgis.com/4.17/esri/themes/light/main.css"
-    />
-    <script src="https://js.arcgis.com/4.17/"></script>
+<link
+  rel="stylesheet"
+  href="https://js.arcgis.com/4.18/esri/themes/light/main.css"
+/>
+<script src="https://js.arcgis.com/4.18/"></script>
 
-    <style>
-      html,
-      body,
-      #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-      }
+<style>
+  html,
+  body,
+  #viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
 
-      #subs-filter {
-        height: 80px;
-        width: 120px;
-        font-size: 13pt;
-        opacity: 0.75;
-        visibility: hidden; 
-      }
+  #subs-filter {
+    height: 80px;
+    width: 120px;
+    font-size: 13pt;
+    opacity: 0.75;
+    visibility: hidden; 
+  }
 
-      #class-filter {
-        height: 160px;
-        width: 150px;
-        font-size: 13pt;
-        opacity: 0.75;
-        visibility: hidden; 
-      }
+  #class-filter {
+    height: 160px;
+    width: 150px;
+    font-size: 13pt;
+    opacity: 0.75;
+    visibility: hidden; 
+  }
 
-      #layerToggle {
-        top: 20px;
-        right: 20px;
-        position: absolute;
-        z-index: 99;
-        background-color: white;
-        border-radius: 8px;
-        padding: 10px;
-        opacity: 0.75;
-      }
+  #layerToggle {
+    top: 20px;
+    right: 20px;
+    position: absolute;
+    z-index: 99;
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+    opacity: 0.75;
+  }
 
-      .subs-status:focus {
-        background-color: dimgrey;
-      }
+  #titleDiv {
+    padding: 10px;
+  }
 
-      .subs-status:hover {
-        background-color: dimgrey;
-      }
+  #titleText {
+    font-size: 20pt;
+    font-weight: 60;
+    padding-bottom: 10px;
+  }
 
-      #titleDiv {
-        padding: 10px;
-      }
+  #infoDiv {
+    padding: 10px;
+  }
 
-      #titleText {
-        font-size: 20pt;
-        font-weight: 60;
-        padding-bottom: 10px;
-      }
+  #basemapDiv {
+    padding: 10px;
+  }
+</style>
 
-      #infoDiv {
-        padding: 10px;
-      }
+<script type="text/arcgis-arcade" id="countSubsribe">
+  var portal = Portal('https://wellcode.maps.arcgis.com/');
+  var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keyword = 'yes'
+  var filterKeyword = Filter(merchant,'subscribe = @keyword')
+  var intersectArea = Intersects($feature, filterKeyword)
+  var jumlah = count(intersectArea)
+  return jumlah
+</script>
 
-      #basemapDiv {
-        padding: 10px;
-      }
-    </style>
+<script type="text/arcgis-arcade" id="countUnsubscribe">
+  var portal = Portal('https://wellcode.maps.arcgis.com/');
+  var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keyword = 'no'
+  var filterKeyword = Filter(merchant,'subscribe = @keyword')
+  var intersectArea = Intersects($feature, filterKeyword)
+  var jumlah = count(intersectArea)
+  return jumlah
+</script>
 
-    <script type="text/arcgis-arcade" id="countSubsribe">
-      var portal = Portal('https://wellcode.maps.arcgis.com/');
-      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keyword = 'yes'
-      var filterKeyword = Filter(merchant,'subscribe = @keyword')
-      var intersectArea = Intersects($feature, filterKeyword)
-      var jumlah = count(intersectArea)
-      return jumlah
-    </script>
+<script type="text/arcgis-arcade" id="maxUserStatus">
+  var portal = Portal('https://wellcode.maps.arcgis.com/');
+  var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keywordUnsub = 'no'
+  var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
+  var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
+  var jumlahUnsub = count(intersectAreaUnsub)
+  var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keyword = 'yes'
+  var filterKeyword = Filter(merchant,'subscribe = @keyword')
+  var intersectArea = Intersects($feature, filterKeyword)
+  var jumlah = count(intersectArea)
+  var preDecode = [jumlah, jumlahUnsub]
+  return Decode( Max(parties),
+  jumlah, 'subs',
+  jumlahUnsub, 'unsubs',
+  'n/a' )
+</script>
 
-    <script type="text/arcgis-arcade" id="countUnsubscribe">
-      var portal = Portal('https://wellcode.maps.arcgis.com/');
-      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keyword = 'no'
-      var filterKeyword = Filter(merchant,'subscribe = @keyword')
-      var intersectArea = Intersects($feature, filterKeyword)
-      var jumlah = count(intersectArea)
-      return jumlah
-    </script>
+<script type="text/arcgis-arcade" id="persenSub">
+  var portal = Portal('https://wellcode.maps.arcgis.com/');
+  var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keywordUnsub = 'no'
+  var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
+  var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
+  var jumlahUnsub = count(intersectAreaUnsub)
+  var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
+  var keyword = 'yes'
+  var filterKeyword = Filter(merchant,'subscribe = @keyword')
+  var intersectArea = Intersects($feature, filterKeyword)
+  var jumlah = count(intersectArea)
+  var max = jumlah + jumlahUnsub
+  var persen = jumlah/max*100
+  return round(persen, 2)
+</script>
 
-    <script type="text/arcgis-arcade" id="maxUserStatus">
-      var portal = Portal('https://wellcode.maps.arcgis.com/');
-      var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keywordUnsub = 'no'
-      var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
-      var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
-      var jumlahUnsub = count(intersectAreaUnsub)
-      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keyword = 'yes'
-      var filterKeyword = Filter(merchant,'subscribe = @keyword')
-      var intersectArea = Intersects($feature, filterKeyword)
-      var jumlah = count(intersectArea)
-      var preDecode = [jumlah, jumlahUnsub]
-      return Decode( Max(parties),
-      jumlah, 'subs',
-      jumlahUnsub, 'unsubs',
-      'n/a' )
-    </script>
+<script>
+  require([
+    "esri/views/MapView",
+    "esri/Map",
+    "esri/layers/FeatureLayer",
+    "esri/widgets/Expand",
+    "esri/widgets/Legend",
+    "esri/layers/WMTSLayer",
+    "esri/widgets/BasemapGallery",
+    "esri/renderers/UniqueValueRenderer",
+    "esri/symbols/SimpleFillSymbol",
+    "esri/symbols/SimpleLineSymbol",
+    "esri/Color",
+    // "esri/geometry/geometryEngine"
+    // "dojo/on",
+    // "dojo/dom",
+    // "dojo/domReady!"
+  ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer, BasemapGallery,
+  UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, Color) {
 
-    <script type="text/arcgis-arcade" id="persenSub">
-      var portal = Portal('https://wellcode.maps.arcgis.com/');
-      var merchantUnsub = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keywordUnsub = 'no'
-      var filterKeywordUnsub = Filter(merchantUnsub,'subscribe = @keywordUnsub')
-      var intersectAreaUnsub = Intersects($feature, filterKeywordUnsub)
-      var jumlahUnsub = count(intersectAreaUnsub)
-      var merchant = FeatureSetByPortalItem(portal, 'd251e1df1415432bb348097a138868e9', 0, ['*'], true)
-      var keyword = 'yes'
-      var filterKeyword = Filter(merchant,'subscribe = @keyword')
-      var intersectArea = Intersects($feature, filterKeyword)
-      var jumlah = count(intersectArea)
-      var max = jumlah + jumlahUnsub
-      var persen = jumlah/max*100
-      return round(persen, 2)
-    </script>
+    let floodLayerView;
 
-    <script>
-      require([
-        "esri/views/MapView",
-        "esri/Map",
-        "esri/layers/FeatureLayer",
-        "esri/widgets/Expand",
-        "esri/widgets/Legend",
-        "esri/layers/WMTSLayer",
-        "esri/widgets/BasemapGallery",
-        "esri/renderers/UniqueValueRenderer",
-        "esri/symbols/SimpleFillSymbol",
-        "esri/symbols/SimpleLineSymbol",
-        "esri/Color",
-        // "esri/geometry/geometryEngine"
-        // "dojo/on",
-        // "dojo/dom",
-        // "dojo/domReady!"
-      ], function (MapView, Map, FeatureLayer, Expand, Legend, WMTSLayer, BasemapGallery,
-      UniqueValueRenderer, SimpleFillSymbol, SimpleLineSymbol, Color) {
+    //-------------call arcade function-------------------------------------
+    const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
+    const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
+    const arcadeCountPercentageSubs = document.getElementById("persenSub").text;
+    //-------------/call arcade function-------------------------------------
 
-        let floodLayerView;
+    //--------------------color selection batas wilayah------------------------
+    // var fill = {
+    //   type: "simple-fill",
+    //   outline: { cap: "round" },
+    //   color: [124, 26, 26, 0.4]
+    // };
 
-        //-------------call arcade function-------------------------------------
-        const arcadeCountSubscribe = document.getElementById("countSubsribe").text;
-        const arcadeCountUnsubscribe = document.getElementById("countUnsubscribe").text;
-        const arcadeCountPercentageSubs = document.getElementById("persenSub").text;
-        //-------------/call arcade function-------------------------------------
+    // var fill2 = {
+    //   type: "simple-fill",
+    //   outline: { cap: "round" },
+    //   color: [26, 41, 124, 0.4]
+    // };
 
-        //--------------------color selection batas wilayah------------------------
-        // var fill = {
-        //   type: "simple-fill",
-        //   outline: { cap: "round" },
-        //   color: [124, 26, 26, 0.4]
-        // };
-
-        // var fill2 = {
-        //   type: "simple-fill",
-        //   outline: { cap: "round" },
-        //   color: [26, 41, 124, 0.4]
-        // };
-
-        // const renderBatas = new UniqueValueRenderer({
-        //   ValueExpression: arcadeCountPercentageSubs,
-        //   ValueExpressionTitle: "Percentage Subscriber",
-        //   uniqueValueInfos: [{
-        //     value: "subs",
-        //     symbol: fill,
-        //     label: ">50% subsriber"
-        //   },
-        //   {
-        //     value: "unsubs",
-        //     symbol: fill2,
-        //     label: "<50% subsriber"
-        //   }] 
-        // });
-        //--------------------/color selection batas wilayah------------------------
-        
-        //--------------cluster----------------------------
-        const clusterMerchant = {
-          type: "cluster",
-          clusterRadius: "100px",
-          clusterMinSize: "24px",
-          clusterMaxSize: "50px",
-          labelingInfo: [
-            {
-              deconflictionStrategy: "none",
-              labelExpressionInfo: {
-                expression: "Text($feature.cluster_count, '#,###')"
-              },
-              symbol: {
-                type: "text",
-                color: "#004a5d",
-                font: {
-                  weight: "bold",
-                  family: "Noto Sans",
-                  size: "12px"
-                }
-              },
-              labelPlacement: "center-center"
-            }
-          ]
-        };
-        //--------------/cluster----------------------------
-
-        //------------- call mapservice layer & arcade count -------------------
-        const merchantPinterusaha = new FeatureLayer({
-          url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
-          popupTemplate: {
-            title: "{Nama}",
-            content: "{Location}",
-          },
-          outfields: ['*'],
-          featureReduction: clusterMerchant,
-        });
-        
-        const batasKecamatan = new FeatureLayer({
-          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
-          popupTemplate: {
-            title: " PinterUsaha pada {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kec_s}, {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kab_s} ",
-            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}"
-            + ", Percentage Subsriber = " + "{expression/percent-subs}%",
-            expressionInfos: [
-              {
-                name: "count-subsribe",
-                title: "Jumlah Subsribe",
-                expression: arcadeCountSubscribe
-              },
-              {
-                name: "count-unsubscribe",
-                title: "Jumlah Unsubscribe",
-                expression: arcadeCountUnsubscribe
-              },
-              {
-                name: "percent-subs",
-                title: "percentage subsriber",
-                expression: arcadeCountPercentageSubs
-              }
-            ]
-          },
-          // renderer: renderBatas,
-          visible: false,
-        });
-
-        const batasKota = new FeatureLayer({
-          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/1", 
-          popupTemplate: {
-            title: " PinterUsaha pada {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_kab_s}, {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_prop_}",
-            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
-            expressionInfos: [
-              {
-                name: "count-subsribe",
-                title: "Jumlah Subsribe",
-                expression: arcadeCountSubscribe
-              },
-              {
-                name: "count-unsubscribe",
-                title: "Jumlah Unsubscribe",
-                expression: arcadeCountUnsubscribe
-              },
-            ]
-          },
-          visible: false,
-        });
-
-        const batasProvinsi = new FeatureLayer({
-          url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/0",
-          popupTemplate: {
-            title: " PinterUsaha pada Provinsi {giskemendagri.gisadmin.Provinsi_baru.provinsi}",
-            content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
-            expressionInfos: [
-              {
-                name: "count-subsribe",
-                title: "Jumlah Subsribe",
-                expression: arcadeCountSubscribe
-              },
-              {
-                name: "count-unsubscribe",
-                title: "Jumlah Unsubscribe",
-                expression: arcadeCountUnsubscribe
-              },
-            ]
-          },
-          visible: false,
-        });
+    // const renderBatas = new UniqueValueRenderer({
+    //   ValueExpression: arcadeCountPercentageSubs,
+    //   ValueExpressionTitle: "Percentage Subscriber",
+    //   uniqueValueInfos: [{
+    //     value: "subs",
+    //     symbol: fill,
+    //     label: ">50% subsriber"
+    //   },
+    //   {
+    //     value: "unsubs",
+    //     symbol: fill2,
+    //     label: "<50% subsriber"
+    //   }] 
+    // });
+    //--------------------/color selection batas wilayah------------------------
     
-        const map = new Map({
-          basemap: "streets-night-vector",
-          layers: [merchantPinterusaha, batasKecamatan, batasKota, batasProvinsi]
-        });
-        //------------- /call mapservice layer & arcade count -------------------
-
-        const view = new MapView({
-          map: map,
-          container: "viewDiv",
-          center: [107.6191, -6.9175],
-          zoom: 6,
-          ui: {
-            components: ["attribution"]
-          }
-        });
-
-        //------------- toggle by area -------------------
-        var batasKotaToggle = document.getElementById("batasKota");
-        batasKotaToggle.addEventListener("change", function () {
-          batasKota.visible = batasKotaToggle.checked;
-        });
-
-        var batasKecamatanToggle = document.getElementById("batasKecamatan");
-        batasKecamatanToggle.addEventListener("change", function () {
-          batasKecamatan.visible = batasKecamatanToggle.checked;
-        });
-
-        var batasProvinsiToggle = document.getElementById("batasProvinsi");
-        batasProvinsiToggle.addEventListener("change", function () {
-          batasProvinsi.visible = batasProvinsiToggle.checked;
-        });
-        //------------- /toggle by area -------------------
-
-        //------------- filter by subsriber -------------------
-        const subsNodes = document.querySelectorAll(`.subs-status`)
-        const subsElement = document.getElementById("subs-filter")
-
-        const subStatuses = document.querySelectorAll('.subs-status');
-        for(let i=0; i<subStatuses.length; i++){
-          subStatuses[i].addEventListener('change', filterBySubsStatus)        
-        }
-
-        function filterBySubsStatus(event){
-          let params = [];
-          for(let i=0; i<subStatuses.length; i++){
-            const value = subStatuses[i].dataset.subsStatus;
-            const actived = subStatuses[i].checked;
-            if(actived){
-              params.push("subscribe = '" + value + "'");
+    //--------------cluster----------------------------
+    const clusterMerchant = {
+      type: "cluster",
+      clusterRadius: "100px",
+      clusterMinSize: "24px",
+      clusterMaxSize: "50px",
+      labelingInfo: [
+        {
+          deconflictionStrategy: "none",
+          labelExpressionInfo: {
+            expression: "Text($feature.cluster_count, '#,###')"
+          },
+          symbol: {
+            type: "text",
+            color: "#004a5d",
+            font: {
+              weight: "bold",
+              family: "Noto Sans",
+              size: "12px"
             }
+          },
+          labelPlacement: "center-center"
+        }
+      ]
+    };
+    //--------------/cluster----------------------------
+
+    //------------- call mapservice layer & arcade count -------------------
+    const merchantPinterusaha = new FeatureLayer({
+      url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
+      popupTemplate: {
+        title: "{Nama}",
+        content: "{Location}",
+      },
+      outfields: ['*'],
+      featureReduction: clusterMerchant,
+    });
+    
+    const batasKecamatan = new FeatureLayer({
+      url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
+      popupTemplate: {
+        title: " PinterUsaha pada {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kec_s}, {giskemendagri.gisadmin.Kecamatan_Tabel_06072017.nama_kab_s} ",
+        content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}"
+        + ", Percentage Subsriber = " + "{expression/percent-subs}%",
+        expressionInfos: [
+          {
+            name: "count-subsribe",
+            title: "Jumlah Subsribe",
+            expression: arcadeCountSubscribe
+          },
+          {
+            name: "count-unsubscribe",
+            title: "Jumlah Unsubscribe",
+            expression: arcadeCountUnsubscribe
+          },
+          {
+            name: "percent-subs",
+            title: "percentage subsriber",
+            expression: arcadeCountPercentageSubs
           }
+        ]
+      },
+      // renderer: renderBatas,
+      visible: false,
+    });
 
-          let query = params.join(' OR ');
-          floodLayerView.filter = {
-            where: query
-          };
+    const batasKota = new FeatureLayer({
+      url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/1", 
+      popupTemplate: {
+        title: " PinterUsaha pada {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_kab_s}, {giskemendagri.gisadmin.Kabupaten_Tabel_06072017.nama_prop_}",
+        content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+        expressionInfos: [
+          {
+            name: "count-subsribe",
+            title: "Jumlah Subsribe",
+            expression: arcadeCountSubscribe
+          },
+          {
+            name: "count-unsubscribe",
+            title: "Jumlah Unsubscribe",
+            expression: arcadeCountUnsubscribe
+          },
+        ]
+      },
+      visible: false,
+    });
+
+    const batasProvinsi = new FeatureLayer({
+      url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/0",
+      popupTemplate: {
+        title: " PinterUsaha pada Provinsi {giskemendagri.gisadmin.Provinsi_baru.provinsi}",
+        content: "Subscribe = " + "{expression/count-subsribe}" + ", Unsubscribe = " + "{expression/count-unsubscribe}",
+        expressionInfos: [
+          {
+            name: "count-subsribe",
+            title: "Jumlah Subsribe",
+            expression: arcadeCountSubscribe
+          },
+          {
+            name: "count-unsubscribe",
+            title: "Jumlah Unsubscribe",
+            expression: arcadeCountUnsubscribe
+          },
+        ]
+      },
+      visible: false,
+    });
+
+    const map = new Map({
+      basemap: "streets-night-vector",
+      layers: [merchantPinterusaha, batasKecamatan, batasKota, batasProvinsi]
+    });
+    //------------- /call mapservice layer & arcade count -------------------
+
+    const view = new MapView({
+      map: map,
+      container: "viewDiv",
+      center: [107.6191, -6.9175],
+      zoom: 6,
+      ui: {
+        components: ["attribution"]
+      }
+    });
+
+    //------------- toggle by area -------------------
+    var batasKotaToggle = document.getElementById("batasKota");
+    batasKotaToggle.addEventListener("change", function () {
+      batasKota.visible = batasKotaToggle.checked;
+    });
+
+    var batasKecamatanToggle = document.getElementById("batasKecamatan");
+    batasKecamatanToggle.addEventListener("change", function () {
+      batasKecamatan.visible = batasKecamatanToggle.checked;
+    });
+
+    var batasProvinsiToggle = document.getElementById("batasProvinsi");
+    batasProvinsiToggle.addEventListener("change", function () {
+      batasProvinsi.visible = batasProvinsiToggle.checked;
+    });
+    //------------- /toggle by area -------------------
+
+    //------------- filter by subsriber -------------------
+    const subsNodes = document.querySelectorAll(`.subs-status`);
+    const subsElement = document.getElementById("subs-filter");
+    const classNodes = document.querySelectorAll(`.class-merchant`);
+    const classElement = document.getElementById("class-filter");
+
+    const subStatuses = document.querySelectorAll('.subs-status, .class-merchant');
+    for(let i=0; i<subStatuses.length; i++){
+      subStatuses[i].addEventListener('change', filterBySubsStatus)        
+    }
+
+    function filterBySubsStatus(event){
+      let params1 = [];
+      let params2 = [];
+      for(let i=0; i<subStatuses.length; i++){
+        const value = subStatuses[i].dataset.subsStatus;
+        const classValue = subStatuses[i].dataset.classMerchant
+        const actived = subStatuses[i].checked;
+        if(actived){
+          params1.push("subscribe = '" + value + "'");
+          params2.push("klasifikasi = '" + classValue + "'");
         }
-
-        view.whenLayerView(merchantPinterusaha).then(function(layerView){
-          floodLayerView = layerView;
-
-          subsElement.style.visibility = "visible";
-          const subsExpand = new Expand({
-            view: view,
-            content: subsElement,
-            expandIconClass: "esri-icon-filter",
-            group: "top-left"
-          });
-
-          // // subsExpand.watch("expanded", function(){
-          // //   if(!subsExpand.expanded){
-          // //     floodLayerView.filter = null;
-          // //   }
-          // });
-          view.ui.add(subsExpand, "top-left");
-        });
-        //--------------/filter by subsriber -------------------
-
-        //------------- filter by klasifikasi usaha -------------------
-        const classNodes = document.querySelectorAll(`.class-merchant`)
-        const classElement = document.getElementById("class-filter")
-
-        const classifyData = document.querySelectorAll('.class-merchant');
-        for(let i=0; i<classifyData.length; i++){
-          classifyData[i].addEventListener('change', filterByClassification)        
-        }
-
-        function filterByClassification(event){
-          let params = [];
-          for(let i=0; i<classifyData.length; i++){
-            const value = classifyData[i].dataset.classMerchant;
-            const actived = classifyData[i].checked;
-            if(actived){
-              params.push("klasifikasi  = '" + value + "'");
-            }
-            
-          }
-          
-          let queryClass = params.join(' OR ');
-          // debugger;
-          floodLayerView.filter = {
-            where: queryClass
-          };
-        }
+        let remove = [
+          "klasifikasi = 'undefined'", "subscribe = 'undefined'"
+        ];
+        var filterParams1 = params1.filter(item => !remove.includes(item));
+        var filterParams2 = params2.filter(item => !remove.includes(item));
+        var params = filterParams1.flatMap(
+          a => filterParams2.map(n => a + ' AND ' + n)
+        );
+      }
       
-        view.whenLayerView(merchantPinterusaha).then(function(layerView){
-          floodLayerView = layerView;
-     
-          classElement.style.visibility = "visible";
-          const classExpand = new Expand({
-            view: view,
-            content: classElement,
-            expandIconClass: "esri-icon-filter",
-            group: "top-left"
-          });
-          view.ui.add(classExpand, "top-left");
-        });
-        //--------------/filter by klasifikasi usaha -------------------
+      let query = params.join(' OR ');
+      // debugger;
+      floodLayerView.filter = {
+        where: query
+      };
+    }
 
-        //---------------------change basemap--------------------------------
-        var basemapGallery = new BasemapGallery({
-          view: view,
-          container: "basemapDiv",
-          source: {
-            portal: {
-              url: "https://www.arcgis.com",
-              useVectorBasemaps: true
-              }
-          }    
-        });
-        
-        const basemapDiv = document.getElementById("basemapDiv");
-        view.ui.add(
-          new Expand({
-            view: view,
-            content: basemapDiv,
-            expandIconClass: "esri-icon-basemap",
-            expanded: false
-          }),
-          "top-left"
-        );
-        //--------------/change basemap--------------------------------
+    view.whenLayerView(merchantPinterusaha).then(function(layerView){
+      floodLayerView = layerView;
 
-        //-------------------Map Legend & Disable/Enable Clustering---------------------
-        const legend = new Legend({
-          view: view,
-          container: "legendDiv"
-        });
-        
-        const infoDiv = document.getElementById("infoDiv");
-        view.ui.add(
-          new Expand({
-            view: view,
-            content: infoDiv,
-            expandIconClass: "esri-icon-layer-list",
-            expanded: false
-          }),
-          "top-left"
-        );
-
-        const toggleButton = document.getElementById("cluster");
-        toggleButton.addEventListener("click", function () {
-          let fr = merchantPinterusaha.featureReduction;
-          merchantPinterusaha.featureReduction =
-            fr && fr.type === "cluster" ? null : clusterMerchant;
-          toggleButton.innerText =
-            toggleButton.innerText === "Enable Clustering"
-              ? "Disable Clustering"
-              : "Enable Clustering";
-        });
-        //-------------------/Map Legend & Disable/Enable Clustering---------------------
+      subsElement.style.visibility = "visible";
+      const subsExpand = new Expand({
+        view: view,
+        content: subsElement,
+        expandIconClass: "esri-icon-filter",
+        group: "top-left"
       });
 
-    </script>
-  </head>
+      // // subsExpand.watch("expanded", function(){
+      // //   if(!subsExpand.expanded){
+      // //     floodLayerView.filter = null;
+      // //   }
+      // });
+      view.ui.add(subsExpand, "top-left");
+    });
+    //--------------/filter by subsriber -------------------
 
-  <body>
-    <div id="subs-filter" class="esri-widget">
-      <input type="checkbox" class="subs-status visible-status" data-subs-status="yes">Subscribed<br>
-      <input type="checkbox" class="subs-status visible-status" data-subs-status="no">Not Subscribed
-    </div>
-    <div id="class-filter" class="esri-widget">
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa">Services<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kesehatan">Healthcare<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Coffee Shop">Coffee Shop<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB">Food & Beverages<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk">Product<br>
-      <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian">Ministry
-    </div>
-    <div id="viewDiv"></div>
-    <div id="titleDiv" class="esri-widget">
-      <span id="layerToggle" class="esri-widget">
-        <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
-        <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten
-        <input type="checkbox" id="batasProvinsi" /> Batas Provinsi
-    </div>
-    <div id="infoDiv" class="esri-widget">
-      <button id="cluster" class="esri-button">Disable Clustering</button>
-      <div id="legendDiv"></div>
-    </div>
-    <div id="basemapDiv" class="esri-widget">
-      <div id="basemapDiv"></div>
-    </div>
-  </body>
+    //------------- filter by klasifikasi usaha -------------------
+    
+
+    // const classifyData = document.querySelectorAll('.class-merchant');
+    // for(let i=0; i<classifyData.length; i++){
+    //   classifyData[i].addEventListener('change', filterByClassification)        
+    // }
+
+    // function filterByClassification(event){
+    //   let params = [];
+    //   for(let i=0; i<classifyData.length; i++){
+    //     const value = classifyData[i].dataset.classMerchant;
+    //     const actived = classifyData[i].checked;
+    //     if(actived){
+    //       params.push("klasifikasi  = '" + value + "'");
+    //     }
+        
+    //   }
+      
+    //   let queryClass = params.join(' OR ');
+    //   // debugger;
+    //   floodLayerView.filter = {
+    //     where: queryClass
+    //   };
+    // }
+  
+    view.whenLayerView(merchantPinterusaha).then(function(layerView){
+      floodLayerView = layerView;
+  
+      classElement.style.visibility = "visible";
+      const classExpand = new Expand({
+        view: view,
+        content: classElement,
+        expandIconClass: "esri-icon-filter",
+        group: "top-left"
+      });
+      view.ui.add(classExpand, "top-left");
+    });
+    //--------------/filter by klasifikasi usaha -------------------
+
+    //---------------------change basemap--------------------------------
+    var basemapGallery = new BasemapGallery({
+      view: view,
+      container: "basemapDiv",
+      source: {
+        portal: {
+          url: "https://www.arcgis.com",
+          useVectorBasemaps: true
+          }
+      }    
+    });
+    
+    const basemapDiv = document.getElementById("basemapDiv");
+    view.ui.add(
+      new Expand({
+        view: view,
+        content: basemapDiv,
+        expandIconClass: "esri-icon-basemap",
+        expanded: false
+      }),
+      "top-left"
+    );
+    //--------------/change basemap--------------------------------
+
+    //-------------------Map Legend & Disable/Enable Clustering---------------------
+    const legend = new Legend({
+      view: view,
+      container: "legendDiv"
+    });
+    
+    const infoDiv = document.getElementById("infoDiv");
+    view.ui.add(
+      new Expand({
+        view: view,
+        content: infoDiv,
+        expandIconClass: "esri-icon-layer-list",
+        expanded: false
+      }),
+      "top-left"
+    );
+
+    const toggleButton = document.getElementById("cluster");
+    toggleButton.addEventListener("click", function () {
+      let fr = merchantPinterusaha.featureReduction;
+      merchantPinterusaha.featureReduction =
+        fr && fr.type === "cluster" ? null : clusterMerchant;
+      toggleButton.innerText =
+        toggleButton.innerText === "Enable Clustering"
+          ? "Disable Clustering"
+          : "Enable Clustering";
+    });
+    //-------------------/Map Legend & Disable/Enable Clustering---------------------
+  });
+
+</script>
+</head>
+
+<body>
+<div id="subs-filter" class="esri-widget">
+  <input type="checkbox" class="subs-status visible-status" data-subs-status="yes">Subscribed<br>
+  <input type="checkbox" class="subs-status visible-status" data-subs-status="no">Not Subscribed
+</div>
+<div id="class-filter" class="esri-widget">
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa" checked>Services<br>
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kesehatan" checked>Healthcare<br>
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Coffee Shop" checked>Coffee Shop<br>
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB" checked>Food & Beverages<br>
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk" checked>Product<br>
+  <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian" checked>Ministry
+</div>
+<div id="viewDiv"></div>
+<div id="titleDiv" class="esri-widget">
+  <span id="layerToggle" class="esri-widget">
+    <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
+    <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten
+    <input type="checkbox" id="batasProvinsi" /> Batas Provinsi
+</div>
+<div id="infoDiv" class="esri-widget">
+  <button id="cluster" class="esri-button">Disable Clustering</button>
+  <div id="legendDiv"></div>
+</div>
+<div id="basemapDiv" class="esri-widget">
+  <div id="basemapDiv"></div>
+</div>
+</body>
 </html>
