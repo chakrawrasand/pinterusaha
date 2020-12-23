@@ -47,8 +47,7 @@
   }
 
   #layerToggle {
-    top: 20px;
-    right: 20px;
+    width: 180px;
     position: absolute;
     z-index: 99;
     background-color: white;
@@ -297,10 +296,61 @@
       visible: false,
     });
 
+    const dataUmkm = new FeatureLayer({
+      url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/umkm__/FeatureServer/0",
+      featureReduction: clusterMerchant,
+      outfields: ["*"],
+      popupTemplate: {
+        title: "{nama_usaha}",
+        content: [
+            {
+              type: "fields",
+              fieldInfos:[
+                {
+                  fieldName: "nama_kategori",
+                  label: "Kategori Usaha",
+                  isEditable: true,
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box"
+                },
+                {
+                  fieldName: "alamat_usaha",
+                  label: "Alamat Usaha",
+                  isEditable: true,
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box"
+                },
+                {
+                  fieldName: "nama_pemilik",
+                  label: "Nama Pemilik",
+                  isEditable: true,
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box"
+                },
+                {
+                  fieldName: "no_hp",
+                  label: "No. Handpohone Pemilik",
+                  isEditable: true,
+                  tooltip: "",
+                  visible: true,
+                  format: null,
+                  stringFieldOption: "text-box"
+                },
+              ]
+            }]},
+    });
+
     const map = new Map({
       basemap: "streets-night-vector",
-      layers: [merchantPinterusaha, batasKecamatan, batasKota, batasProvinsi]
+      layers: [merchantPinterusaha, dataUmkm, batasKecamatan, batasKota, batasProvinsi]
     });
+    
     //------------- /call mapservice layer & arcade count -------------------
 
     const view = new MapView({
@@ -328,6 +378,17 @@
     batasProvinsiToggle.addEventListener("change", function () {
       batasProvinsi.visible = batasProvinsiToggle.checked;
     });
+
+    const batasAreaToggle = document.getElementById("layerToggle");
+    view.ui.add(
+      new Expand({
+        view: view,
+        content: batasAreaToggle,
+        expandIconClass: "esri-icon-basemap",
+        expanded: false
+      }),
+      "top-left"
+    );
     //------------- /toggle by area -------------------
 
     //------------- filter by subsriber -------------------
@@ -387,34 +448,7 @@
       // });
       view.ui.add(subsExpand, "top-left");
     });
-    //--------------/filter by subsriber -------------------
-
-    //------------- filter by klasifikasi usaha -------------------
-    
-
-    // const classifyData = document.querySelectorAll('.class-merchant');
-    // for(let i=0; i<classifyData.length; i++){
-    //   classifyData[i].addEventListener('change', filterByClassification)        
-    // }
-
-    // function filterByClassification(event){
-    //   let params = [];
-    //   for(let i=0; i<classifyData.length; i++){
-    //     const value = classifyData[i].dataset.classMerchant;
-    //     const actived = classifyData[i].checked;
-    //     if(actived){
-    //       params.push("klasifikasi  = '" + value + "'");
-    //     }
-        
-    //   }
       
-    //   let queryClass = params.join(' OR ');
-    //   // debugger;
-    //   floodLayerView.filter = {
-    //     where: queryClass
-    //   };
-    // }
-  
     view.whenLayerView(merchantPinterusaha).then(function(layerView){
       floodLayerView = layerView;
   
@@ -480,6 +514,15 @@
           ? "Disable Clustering"
           : "Enable Clustering";
     });
+    toggleButton.addEventListener("click", function () {
+      let fr = dataUmkm.featureReduction;
+      dataUmkm.featureReduction =
+        fr && fr.type === "cluster" ? null : clusterMerchant;
+      toggleButton.innerText =
+        toggleButton.innerText === "Enable Clustering"
+          ? "Disable Clustering"
+          : "Enable Clustering";
+    });
     //-------------------/Map Legend & Disable/Enable Clustering---------------------
   });
 
@@ -488,8 +531,8 @@
 
 <body>
 <div id="subs-filter" class="esri-widget">
-  <input type="checkbox" class="subs-status visible-status" data-subs-status="yes">Subscribed<br>
-  <input type="checkbox" class="subs-status visible-status" data-subs-status="no">Not Subscribed
+  <input type="checkbox" class="subs-status visible-status" data-subs-status="yes" checked>Subscribed<br>
+  <input type="checkbox" class="subs-status visible-status" data-subs-status="no" checked>Not Subscribed
 </div>
 <div id="class-filter" class="esri-widget">
   <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Jasa" checked>Services<br>
@@ -502,8 +545,8 @@
 <div id="viewDiv"></div>
 <div id="titleDiv" class="esri-widget">
   <span id="layerToggle" class="esri-widget">
-    <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan
-    <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten
+    <input type="checkbox" id="batasKecamatan" /> Batas Kecamatan<br>
+    <input type="checkbox" id="batasKota" /> Batas Kota atau Kabupaten<br>
     <input type="checkbox" id="batasProvinsi" /> Batas Provinsi
 </div>
 <div id="infoDiv" class="esri-widget">
