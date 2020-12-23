@@ -193,12 +193,24 @@
       type: "cluster",
       clusterRadius: "100px",
       clusterMinSize: "24px",
-      clusterMaxSize: "50px",
+      clusterMaxSize: "40px",
+      popupTemplate: {
+        content: "This cluster represents {cluster_count} points.",
+        fieldInfos: [
+          {
+            fieldName: "cluster_count",
+            format: {
+              places: 0,
+              digitSeparator: true
+            }
+          }
+        ]
+      },
       labelingInfo: [
         {
           deconflictionStrategy: "none",
           labelExpressionInfo: {
-            expression: "Text($feature.cluster_count, '#,###')"
+            expression: "Text($feature.cluster_count, '###')"
           },
           symbol: {
             type: "text",
@@ -490,7 +502,29 @@
     //-------------------Map Legend & Disable/Enable Clustering---------------------
     const legend = new Legend({
       view: view,
-      container: "legendDiv"
+      container: "legendDiv",
+      layerInfos: [
+        {
+          layer: dataUmkm,
+          title: "Data UMKM",
+        },
+        {
+          layer: merchantPinterusaha,
+          title: "Database Pinterusaha",
+        },
+        {
+          layer: batasKecamatan,
+          title: "Batas Kecamatan",
+        },
+        {
+          layer: batasKota,
+          title: "Batas Kota/ Kabupaten",
+        },
+        {
+          layer: batasProvinsi,
+          title: "Batas Provinsi",
+        },
+      ]
     });
     
     const infoDiv = document.getElementById("infoDiv");
@@ -507,17 +541,11 @@
     const toggleButton = document.getElementById("cluster");
     toggleButton.addEventListener("click", function () {
       let fr = merchantPinterusaha.featureReduction;
+      let fc = dataUmkm.featureReduction;
       merchantPinterusaha.featureReduction =
         fr && fr.type === "cluster" ? null : clusterMerchant;
-      toggleButton.innerText =
-        toggleButton.innerText === "Enable Clustering"
-          ? "Disable Clustering"
-          : "Enable Clustering";
-    });
-    toggleButton.addEventListener("click", function () {
-      let fr = dataUmkm.featureReduction;
       dataUmkm.featureReduction =
-        fr && fr.type === "cluster" ? null : clusterMerchant;
+        fc && fc.type === "cluster" ? null : clusterMerchant;
       toggleButton.innerText =
         toggleButton.innerText === "Enable Clustering"
           ? "Disable Clustering"
