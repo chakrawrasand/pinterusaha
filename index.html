@@ -39,6 +39,8 @@
   }
 
   #class-filter {
+    top: 10px;
+    left: 30px;
     height: 160px;
     width: 150px;
     font-size: 13pt;
@@ -228,15 +230,15 @@
     //--------------/cluster----------------------------
 
     //------------- call mapservice layer & arcade count -------------------
-    const merchantPinterusaha = new FeatureLayer({
-      url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
-      popupTemplate: {
-        title: "{Nama}",
-        content: "{Location}",
-      },
-      outfields: ['*'],
-      featureReduction: clusterMerchant,
-    });
+    // const merchantPinterusaha = new FeatureLayer({
+    //   url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/merchant/FeatureServer/0",
+    //   popupTemplate: {
+    //     title: "{Nama}",
+    //     content: "{Location}",
+    //   },
+    //   outfields: ['*'],
+    //   featureReduction: clusterMerchant,
+    // });
     
     const batasKecamatan = new FeatureLayer({
       url: "http://gis.dukcapil.kemendagri.go.id:6080/arcgis/rest/services/Data_022016_25082017/MapServer/2", 
@@ -309,7 +311,7 @@
     });
 
     const dataUmkm = new FeatureLayer({
-      url: "https://services8.arcgis.com/wBvuoeoWzAINzB8k/arcgis/rest/services/umkm__/FeatureServer/0",
+      url: "https://services9.arcgis.com/13g8O389lHpxGSjb/arcgis/rest/services/dataUmkm/FeatureServer/0",
       featureReduction: clusterMerchant,
       outfields: ["*"],
       popupTemplate: {
@@ -360,7 +362,7 @@
 
     const map = new Map({
       basemap: "streets-night-vector",
-      layers: [merchantPinterusaha, dataUmkm, batasKecamatan, batasKota, batasProvinsi]
+      layers: [dataUmkm, batasKecamatan, batasKota, batasProvinsi]
     });
     
     //------------- /call mapservice layer & arcade count -------------------
@@ -442,37 +444,37 @@
       };
     }
 
-    view.whenLayerView(merchantPinterusaha).then(function(layerView){
-      floodLayerView = layerView;
+    // view.whenLayerView(merchantPinterusaha).then(function(layerView){
+    //   floodLayerView = layerView;
 
-      subsElement.style.visibility = "visible";
-      const subsExpand = new Expand({
-        view: view,
-        content: subsElement,
-        expandIconClass: "esri-icon-filter",
-        group: "top-left"
-      });
+    //   subsElement.style.visibility = "visible";
+    //   const subsExpand = new Expand({
+    //     view: view,
+    //     content: subsElement,
+    //     expandIconClass: "esri-icon-filter",
+    //     group: "top-left"
+    //   });
 
-      // // subsExpand.watch("expanded", function(){
-      // //   if(!subsExpand.expanded){
-      // //     floodLayerView.filter = null;
-      // //   }
-      // });
-      view.ui.add(subsExpand, "top-left");
-    });
+    //   // // subsExpand.watch("expanded", function(){
+    //   // //   if(!subsExpand.expanded){
+    //   // //     floodLayerView.filter = null;
+    //   // //   }
+    //   // });
+    //   view.ui.add(subsExpand, "top-left");
+    // });
       
-    view.whenLayerView(merchantPinterusaha).then(function(layerView){
-      floodLayerView = layerView;
+    // view.whenLayerView(merchantPinterusaha).then(function(layerView){
+    //   floodLayerView = layerView;
   
-      classElement.style.visibility = "visible";
-      const classExpand = new Expand({
-        view: view,
-        content: classElement,
-        expandIconClass: "esri-icon-filter",
-        group: "top-left"
-      });
-      view.ui.add(classExpand, "top-left");
-    });
+    //   classElement.style.visibility = "visible";
+    //   const classExpand = new Expand({
+    //     view: view,
+    //     content: classElement,
+    //     expandIconClass: "esri-icon-filter",
+    //     group: "top-left"
+    //   });
+    //   view.ui.add(classExpand, "top-left");
+    // });
     //--------------/filter by klasifikasi usaha -------------------
 
     //---------------------change basemap--------------------------------
@@ -508,10 +510,10 @@
           layer: dataUmkm,
           title: "Data UMKM",
         },
-        {
-          layer: merchantPinterusaha,
-          title: "Database Pinterusaha",
-        },
+        // {
+        //   layer: merchantPinterusaha,
+        //   title: "Database Pinterusaha",
+        // },
         {
           layer: batasKecamatan,
           title: "Batas Kecamatan",
@@ -540,10 +542,10 @@
 
     const toggleButton = document.getElementById("cluster");
     toggleButton.addEventListener("click", function () {
-      let fr = merchantPinterusaha.featureReduction;
+      // let fr = merchantPinterusaha.featureReduction;
       let fc = dataUmkm.featureReduction;
-      merchantPinterusaha.featureReduction =
-        fr && fr.type === "cluster" ? null : clusterMerchant;
+      // merchantPinterusaha.featureReduction =
+      //   fr && fr.type === "cluster" ? null : clusterMerchant;
       dataUmkm.featureReduction =
         fc && fc.type === "cluster" ? null : clusterMerchant;
       toggleButton.innerText =
@@ -558,7 +560,7 @@
 </head>
 
 <body>
-<div id="subs-filter" class="esri-widget">
+<!-- <div id="subs-filter" class="esri-widget">
   <input type="checkbox" class="subs-status visible-status" data-subs-status="yes" checked>Subscribed<br>
   <input type="checkbox" class="subs-status visible-status" data-subs-status="no" checked>Not Subscribed
 </div>
@@ -569,7 +571,7 @@
   <input type="checkbox" class="class-merchant visible-status" data-class-merchant="FnB" checked>Food & Beverages<br>
   <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Produk" checked>Product<br>
   <input type="checkbox" class="class-merchant visible-status" data-class-merchant="Kementerian" checked>Ministry
-</div>
+</div> -->
 <div id="viewDiv"></div>
 <div id="titleDiv" class="esri-widget">
   <span id="layerToggle" class="esri-widget">
